@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" rx="112" fill="#007AFF"/>
+  <g fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-weight="700">
+    <text x="256" y="316" text-anchor="middle" font-size="230">PM</text>
+  </g>
+  <rect x="96" y="396" width="320" height="16" rx="8" fill="#ffffff" opacity="0.55"/>
+  <rect x="96" y="424" width="220" height="10" rx="5" fill="#ffffff" opacity="0.35"/>
+</svg>

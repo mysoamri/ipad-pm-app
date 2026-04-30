@@ -1,0 +1,53 @@
+# 아이패드 PWA → GitHub Pages 자동 배포
+#
+# 트리거: main 브랜치에 push 가 들어오면 빌드 + 배포.
+# 환경변수:
+#  - VITE_GOOGLE_CLIENT_ID   ← repo Settings → Secrets and variables → Actions 에 추가
+#  - VITE_BASE_PATH          ← repo Settings → Secrets and variables → Actions → Variables
+#    예) /<repo-name>/  (앞뒤 슬래시 모두 포함)
+#
+# 호스팅 결과 URL: https://<username>.github.io/<repo-name>/
+name: Deploy iPad PM PWA
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}   # 수동 트리거도 허용
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install
+        run: npm ci
+
+      - name: Build
+        env:
+          VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
+          VITE_BASE_PATH:        ${{ vars.VITE_BASE_PATH }}
+        run: npm run build
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist
+
+      - name: Deploy to Pages
+        uses: actions/deploy-pages@v4

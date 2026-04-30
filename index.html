@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- iOS Safari: 노치/홈인디케이터 까지 컨텐츠 영역으로 사용 + 키보드 시 컨텐츠가 줄어들도록.
+         maximum-scale=1 은 입력 줌인 방지 보강과 함께. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="PM" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="theme-color" content="#007AFF" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" type="image/svg+xml" href="icon-192.svg" />
+    <link rel="apple-touch-icon" href="icon-192.svg" />
+    <!-- Google Identity Services — Drive OAuth(implicit token flow)용. async/defer 로 로딩,
+         실제 사용은 src/api/auth.js 안에서 window.google 확인 후. -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <title>프로젝트 일정관리</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
