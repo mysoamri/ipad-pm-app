@@ -138,7 +138,7 @@ function TaskRow({ task, onEdit, onDelete }) {
 
       <div className="task-row-actions">
         <button className="icon-btn" onClick={onEdit} aria-label="수정">✎</button>
-        <button className="icon-btn red" onClick={onDelete} aria-label="삭제">🗑</button>
+        <button className="icon-btn red" onClick={onDelete} aria-label="삭제">✕</button>
       </div>
     </div>
   )

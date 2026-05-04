@@ -114,7 +114,7 @@ function MilestoneCard({ ms, onEdit, onDelete }) {
           </span>
         )}
         <button className="icon-btn" onClick={onEdit} aria-label="수정">✎</button>
-        <button className="icon-btn red" onClick={onDelete} aria-label="삭제">🗑</button>
+        <button className="icon-btn red" onClick={onDelete} aria-label="삭제">✕</button>
       </div>
     </div>
   )

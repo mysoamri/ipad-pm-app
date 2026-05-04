@@ -10,17 +10,20 @@ import TaskList from './TaskList.jsx'
 import MilestoneList from './MilestoneList.jsx'
 import ProjectModal from './ProjectModal.jsx'
 import WbsView from './WbsView.jsx'
+import ProjectDashboard from './ProjectDashboard.jsx'
 
+// 사용자 지정 순서: 대시보드 → WBS → 작업(업무목록) → 마일스톤
 const TABS = [
-  { key: 'tasks', label: '작업' },
+  { key: 'dashboard',  label: '대시보드' },
+  { key: 'wbs',        label: 'WBS' },
+  { key: 'tasks',      label: '업무목록' },
   { key: 'milestones', label: '마일스톤' },
-  { key: 'wbs', label: 'WBS' },
 ]
 
 export default function ProjectDetail({ projectUuid, onBack }) {
   const [project, setProject] = useState(null)
   const [stats, setStats] = useState(null)
-  const [tab, setTab] = useState('tasks')
+  const [tab, setTab] = useState('dashboard')
   const [editing, setEditing] = useState(false)
   const [refreshTick, setRefreshTick] = useState(0)
 
@@ -91,14 +94,17 @@ export default function ProjectDetail({ projectUuid, onBack }) {
       </nav>
 
       <section className="detail-content">
+        {tab === 'dashboard' && (
+          <ProjectDashboard project={project} key={`dash-${refreshTick}`} />
+        )}
+        {tab === 'wbs' && (
+          <WbsView project={project} key={`wbs-${refreshTick}`} />
+        )}
         {tab === 'tasks' && (
           <TaskList project={project} key={`tasks-${refreshTick}`} />
         )}
         {tab === 'milestones' && (
           <MilestoneList project={project} key={`ms-${refreshTick}`} />
-        )}
-        {tab === 'wbs' && (
-          <WbsView project={project} key={`wbs-${refreshTick}`} />
         )}
       </section>
 
