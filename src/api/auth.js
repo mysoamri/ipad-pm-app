@@ -11,7 +11,13 @@
  * 사파리의 Intelligent Tracking Prevention(ITP) 으로 silent 가 막히면 sign-in 다시 안내.
  */
 
-const SCOPE = 'https://www.googleapis.com/auth/drive.file'
+// drive.file  : 본 앱이 만든 project_db.json 읽기/쓰기 (프로젝트 양방향 동기화)
+// drive.readonly : 맥이 만든 다른 기능 파일(온투업/업무일지/OCR/자료실)을 읽기 전용 조회.
+//   → 두 scope 를 함께 요청. (scope 추가로 한 번 재동의가 필요할 수 있음)
+const SCOPE = [
+  'https://www.googleapis.com/auth/drive.file',
+  'https://www.googleapis.com/auth/drive.readonly',
+].join(' ')
 
 // ── 상태 ──────────────────────────────────────────────────────────────
 let _tokenClient = null
