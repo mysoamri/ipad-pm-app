@@ -1,7 +1,7 @@
 /**
  * 읽기 전용 조회 뷰 4종 — 온투업 / 업무일지 / 이미지추출(OCR) / 통합자료실.
  *
- * 데이터: 맥이 Drive(DashboardApp/<feature>/) 에 백업한 파일을 drive.readonly 로 받아옴.
+ * 데이터: 맥이 Drive(dashboard-Backup/DashboardApp/<feature>/) 에 백업한 파일을 drive.readonly 로 받아옴.
  *   - ontu / journal : JSON 스냅샷 (driveRead.pullFeatureJson)
  *   - ocr / image_library : SQLite(.db) → sql.js 로 SELECT (driveRead.pullFeatureDb)
  *
@@ -10,6 +10,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { pullFeatureJson, pullFeatureDb, resetDriveReadCache } from '../api/driveRead.js'
 import { openDb, selectAll, hasTable } from '../api/sqlite.js'
+import ChangeCard, { CompanyCard, ContactCard } from './ChangeCard.jsx'
 
 // ── 공통 ──────────────────────────────────────────────────────────────────
 function Refresh({ busy, onClick }) {
@@ -58,22 +59,28 @@ function parseTags(v) {
   return []
 }
 
-const META = new Set(['uuid', 'updated_at', 'created_at', 'deleted', 'id', 'rag_optout',
-  'title', 'name', 'content', 'text', 'tags', 'pinned', 'done', 'done_at'])
-function pickLabel(r) {
-  for (const k of ['title', 'name', 'company', 'company_name', 'subject', 'content', 'text', 'memo']) {
-    if (r && typeof r[k] === 'string' && r[k].trim()) return r[k].trim()
-  }
-  return '(제목 없음)'
-}
-function subFields(r) {
-  const out = []
-  for (const [k, v] of Object.entries(r || {})) {
-    if (META.has(k) || v == null || v === '' || typeof v === 'object') continue
-    out.push(`${k}: ${v}`)
-    if (out.length >= 4) break
-  }
-  return out.join(' · ')
+/** 뷰 안쪽 구역 전환용 알약 탭 (온투업의 주요사항/거래처/연락처 등) */
+export function SubTabs({ value, onChange, items }) {
+  return (
+    <div style={{ display: 'flex', gap: 6, overflowX: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: 2 }}>
+      {items.map((it) => {
+        const on = value === it.key
+        return (
+          <button key={it.key} onClick={() => onChange(it.key)} style={{
+            flex: '0 0 auto', fontSize: 13.5, padding: '6px 13px', borderRadius: 999,
+            border: `1px solid ${on ? '#007AFF' : '#CBD5E0'}`, cursor: 'pointer', whiteSpace: 'nowrap',
+            background: on ? '#007AFF' : '#fff', color: on ? '#fff' : '#2D3748',
+            fontWeight: on ? 700 : 500, minHeight: 34,
+          }}>
+            {it.label}
+            {it.count != null && (
+              <span style={{ marginLeft: 5, opacity: 0.75, fontWeight: 500 }}>{it.count}</span>
+            )}
+          </button>
+        )
+      })}
+    </div>
+  )
 }
 
 // JSON 스냅샷 로더 훅
@@ -118,40 +125,67 @@ function useDb(feature, query) {
 }
 
 // ── 온투업 ──────────────────────────────────────────────────────────────────
+const ONTU_SECTIONS = [
+  { key: 'changes',   label: '주요사항' },
+  { key: 'companies', label: '거래처' },
+  { key: 'contacts',  label: '연락처' },
+]
+
 export function OntuView() {
   const { snap, busy, err, reload } = useJson('ontu')
-  const companies = rows(snap, 'companies')
-  const changes = rows(snap, 'changes')
-  const contacts = rows(snap, 'contacts')
-  const total = companies.length + changes.length + contacts.length
+  const [sec, setSec] = useState('changes')
+  const [q, setQ] = useState('')
 
-  const Group = ({ title, list }) => (
-    <div style={{ marginBottom: 18 }}>
-      <h3 style={{ margin: '0 0 8px 2px', fontSize: 15, color: '#2D3748' }}>{title} <span style={{ color: '#A0AEC0', fontWeight: 400 }}>{list.length}</span></h3>
-      {list.length === 0 ? <Empty>없음</Empty> : (
-        <div style={{ display: 'grid', gap: 8 }}>
-          {list.slice(0, 80).map((r, i) => (
-            <Card key={r.uuid || i}>
-              <div style={{ fontWeight: 600, color: '#1A202C' }}>{pickLabel(r)}</div>
-              <div style={{ fontSize: 12.5, color: '#718096', marginTop: 4 }}>{subFields(r) || '—'}</div>
-            </Card>
-          ))}
-        </div>
-      )}
-    </div>
-  )
+  const companies = rows(snap, 'companies')
+  const changes   = rows(snap, 'changes')
+  const contacts  = rows(snap, 'contacts')
+
+  // companyId → 거래처명. 예전 화면은 "co1" 을 그대로 노출했다.
+  const companyName = {}
+  for (const c of companies) companyName[c.uuid || c.id] = c.name
+
+  const match = (r) => {
+    const k = q.trim().toLowerCase()
+    if (!k) return true
+    return JSON.stringify(r).toLowerCase().includes(k)
+  }
+
+  // 주요사항: 고정 먼저, 그다음 등록일 내림차순
+  const changeList = changes.filter(match).sort((a, b) => {
+    if (!!b.pinned !== !!a.pinned) return b.pinned ? 1 : -1
+    return String(b.date || '').localeCompare(String(a.date || ''))
+  })
+  const companyList = companies.filter(match)
+  const contactList = contacts.filter(match)
+
+  const counts = { changes: changeList.length, companies: companyList.length, contacts: contactList.length }
 
   return (
     <div style={{ padding: '4px 14px 40px' }}>
-      <Bar title="온투업 업무" count={total} busy={busy} onRefresh={reload} />
+      <Bar title="온투업 업무" count={counts[sec]} busy={busy} onRefresh={reload} />
       {err && <Err>{err}</Err>}
+
+      <SubTabs value={sec} onChange={setSec} items={ONTU_SECTIONS.map((s) => ({ ...s, count: counts[s.key] }))} />
+
+      <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="제목·본문·담당자 검색…"
+        style={{ width: '100%', boxSizing: 'border-box', margin: '10px 0 12px', fontSize: 15,
+          padding: '9px 12px', border: '1px solid #CBD5E0', borderRadius: 10 }} />
+
       {snap === null && busy && <Empty>불러오는 중…</Empty>}
       {snap !== null && (
-        <>
-          <Group title="거래처" list={companies} />
-          <Group title="주요사항" list={changes} />
-          <Group title="연락처" list={contacts} />
-        </>
+        <div style={{ display: 'grid', gap: 8 }}>
+          {sec === 'changes' && (changeList.length === 0
+            ? <Empty>주요사항이 없습니다.</Empty>
+            : changeList.map((r, i) => (
+                <ChangeCard key={r.uuid || i} item={r} company={companyName[r.companyId]} />
+              )))}
+          {sec === 'companies' && (companyList.length === 0
+            ? <Empty>거래처가 없습니다.</Empty>
+            : companyList.map((r, i) => <CompanyCard key={r.uuid || i} item={r} />))}
+          {sec === 'contacts' && (contactList.length === 0
+            ? <Empty>연락처가 없습니다.</Empty>
+            : contactList.map((r, i) => <ContactCard key={r.uuid || i} item={r} />))}
+        </div>
       )}
     </div>
   )

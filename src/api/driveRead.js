@@ -6,14 +6,16 @@
  * 온투업 / 업무일지 / 이미지추출(OCR) / 통합자료실 조회에 쓴다.
  *
  * Drive 구조 (맥 백엔드가 push):
- *   DashboardApp/
- *     ontu/ontu_snapshot.json            (거래처/주요사항/연락처)
- *     journal/journal_snapshot.json      (업무일지 entries)
- *     ocr/ocr.db                         (OCR 히스토리, SQLite)
- *     image_library/image_library.db     (통합자료실 메타, SQLite)
+ *   dashboard-Backup/
+ *     DashboardApp/
+ *       ontu/ontu_snapshot.json            (거래처/주요사항/연락처)
+ *       journal/journal_snapshot.json      (업무일지 entries)
+ *       ocr/ocr.db                         (OCR 히스토리, SQLite)
+ *       image_library/image_library.db     (통합자료실 메타, SQLite)
  */
 import { ensureAccessToken } from './auth.js'
 
+const BACKUP_ROOT_NAME = 'dashboard-Backup'
 const ROOT_NAME = 'DashboardApp'
 const FOLDER_MIME = 'application/vnd.google-apps.folder'
 
@@ -23,6 +25,11 @@ export const READ_FEATURES = {
   journal:       { folder: 'journal',       json: 'journal_snapshot.json' },
   ocr:           { folder: 'ocr',           db:   'ocr.db' },
   image_library: { folder: 'image_library', db:   'image_library.db' },
+
+  // 맥 프론트의 localStorage 전체 스냅샷(ontu_sync.backup_all 이 push).
+  // 프로젝트별 주요사항(pm-changes-<id>) · 연락처(pm-contacts-<id>) 가 여기 들어있다.
+  // ontu_snapshot.json 은 온투업 3종(companies/changes/contacts)만 담으므로 별도로 읽는다.
+  ontu_ls:       { folder: 'ontu',          json: 'ontu_localstorage.json' },
 }
 
 let _rootId = null
@@ -53,10 +60,12 @@ async function findOne({ name, parentId, mimeType }) {
   return j.files?.[0] || null
 }
 
-/** DashboardApp 루트 폴더 id. 없으면 null. */
+/** dashboard-Backup/DashboardApp 앱 루트 폴더 id. 없으면 null. */
 async function ensureRoot() {
   if (_rootId) return _rootId
-  const f = await findOne({ name: ROOT_NAME, mimeType: FOLDER_MIME })
+  const backup = await findOne({ name: BACKUP_ROOT_NAME, mimeType: FOLDER_MIME })
+  if (!backup) return null
+  const f = await findOne({ name: ROOT_NAME, parentId: backup.id, mimeType: FOLDER_MIME })
   if (!f) return null
   _rootId = f.id
   return _rootId
@@ -96,6 +105,24 @@ export async function pullFeatureDb(feature) {
   const res = await authedFetch(`https://www.googleapis.com/drive/v3/files/${f.id}?alt=media`)
   if (!res.ok) throw new Error(`다운로드 실패 (${res.status}): ${await safeText(res)}`)
   return await res.arrayBuffer()
+}
+
+/**
+ * 맥 프론트의 localStorage 스냅샷을 { key: 파싱된값 } 으로 반환. 없으면 null.
+ *
+ * 원본 형태: { schema_version, saved_at, saved_by, data: { "<키>": "<JSON 문자열>" } }
+ * 값이 JSON 문자열이면 파싱해서, 아니면 원문 그대로 담는다.
+ */
+export async function pullMacLocalStorage() {
+  const raw = await pullFeatureJson('ontu_ls')
+  if (!raw) return null
+  const data = raw.data || {}
+  const out = {}
+  for (const [k, v] of Object.entries(data)) {
+    if (typeof v !== 'string') { out[k] = v; continue }
+    try { out[k] = JSON.parse(v) } catch { out[k] = v }
+  }
+  return { savedAt: raw.saved_at || null, data: out }
 }
 
 /** 캐시 초기화(루트/폴더 id) — 새로고침 강제 시. */

@@ -11,13 +11,20 @@
  * 사파리의 Intelligent Tracking Prevention(ITP) 으로 silent 가 막히면 sign-in 다시 안내.
  */
 
-// drive.file  : 본 앱이 만든 project_db.json 읽기/쓰기 (프로젝트 양방향 동기화)
-// drive.readonly : 맥이 만든 다른 기능 파일(온투업/업무일지/OCR/자료실)을 읽기 전용 조회.
-//   → 두 scope 를 함께 요청. (scope 추가로 한 번 재동의가 필요할 수 있음)
-const SCOPE = [
-  'https://www.googleapis.com/auth/drive.file',
-  'https://www.googleapis.com/auth/drive.readonly',
-].join(' ')
+// scope = drive (전체).
+//
+// 2026-08-05: drive.file + drive.readonly 조합에서 drive 전체로 상향.
+//   이유 — 맥 백엔드(work-dashboard)가 만든 dashboard-Backup/DashboardApp/pm/project_db.json 을
+//   iPad 가 "그 자리에 다시 써야" 양방향 동기화가 성립한다. drive.file 은 *이 앱이 만든*
+//   파일만 보여주므로, 맥이 만든 기존 파일에는 읽기도 쓰기도 닿지 못하고
+//   엉뚱한 빈 폴더를 새로 만들어 혼자 동기화하게 된다.
+//   (설계 근거: work-dashboard/docs/iPad_양방향동기화_E베타.md §설정)
+//
+// 개인 단독 사용이라 Google "미검증 앱" 동의화면이 떠도 고급 → 이동 으로 통과하면 된다.
+// 조회 전용으로만 쓰고 싶으면 빌드 시 VITE_DRIVE_SCOPE 로 좁힐 수 있다.
+//   예) VITE_DRIVE_SCOPE=https://www.googleapis.com/auth/drive.readonly
+const SCOPE =
+  import.meta.env.VITE_DRIVE_SCOPE || 'https://www.googleapis.com/auth/drive'
 
 // ── 상태 ──────────────────────────────────────────────────────────────
 let _tokenClient = null

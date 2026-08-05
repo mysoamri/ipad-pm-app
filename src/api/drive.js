@@ -4,14 +4,16 @@
  *
  * 폴더 트리:
  *   <my-drive>/
- *     DashboardApp/
- *       pm/
- *         project_db.json    ← 동기화 파일
+ *     dashboard-Backup/
+ *       DashboardApp/
+ *         pm/
+ *           project_db.json    ← 동기화 파일
  *
  * 5단계 1차: 폴더 보장 + project_db.json 다운/업로드 헬퍼만. 실 sync 사이클은 sync.js.
  */
 import { ensureAccessToken } from './auth.js'
 
+const BACKUP_ROOT_NAME = 'dashboard-Backup'
 const FOLDER_NAME    = 'DashboardApp'
 const PM_SUBFOLDER   = 'pm'
 const SNAPSHOT_FILE  = 'project_db.json'
@@ -81,10 +83,11 @@ async function ensureFolder(name, parentId) {
   return j.id
 }
 
-/** DashboardApp/pm/ 폴더 보장. folder id 반환. */
+/** dashboard-Backup/DashboardApp/pm/ 폴더 보장. folder id 반환. */
 export async function ensurePmFolder() {
-  const root = await ensureFolder(FOLDER_NAME, null)
-  const pm   = await ensureFolder(PM_SUBFOLDER, root)
+  const backup = await ensureFolder(BACKUP_ROOT_NAME, null)
+  const root   = await ensureFolder(FOLDER_NAME, backup)
+  const pm     = await ensureFolder(PM_SUBFOLDER, root)
   return pm
 }
 

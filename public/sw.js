@@ -9,8 +9,8 @@
 // 새 빌드 = 새 자산 URL 이라 자동으로 옛 캐시가 비활성화된다. CACHE_NAME 만 빌드마다
 // 갈아끼우면 안전.
 
-// v2 — 5탭(온투업/업무일지/이미지추출/통합자료실) 추가 빌드. 옛 셸 캐시 무효화용 버전업.
-const CACHE_NAME = 'ipad-pm-shell-v2'
+// v3 — Drive 경로/스코프 교정, 온투업 상세 표시, 탭바 가림 수정, 프로젝트 주요사항 탭 추가.
+const CACHE_NAME = 'ipad-pm-shell-v3'
 const SHELL_FILES = [
   './',
   './index.html',

@@ -11,13 +11,15 @@ import MilestoneList from './MilestoneList.jsx'
 import ProjectModal from './ProjectModal.jsx'
 import WbsView from './WbsView.jsx'
 import ProjectDashboard from './ProjectDashboard.jsx'
+import ProjectExtras from './ProjectExtras.jsx'
 
-// 사용자 지정 순서: 대시보드 → WBS → 작업(업무목록) → 마일스톤
+// 사용자 지정 순서: 대시보드 → WBS → 작업(업무목록) → 마일스톤 → 주요사항(맥 조회)
 const TABS = [
   { key: 'dashboard',  label: '대시보드' },
   { key: 'wbs',        label: 'WBS' },
   { key: 'tasks',      label: '업무목록' },
   { key: 'milestones', label: '마일스톤' },
+  { key: 'extras',     label: '주요사항' },
 ]
 
 export default function ProjectDetail({ projectUuid, onBack }) {
@@ -105,6 +107,9 @@ export default function ProjectDetail({ projectUuid, onBack }) {
         )}
         {tab === 'milestones' && (
           <MilestoneList project={project} key={`ms-${refreshTick}`} />
+        )}
+        {tab === 'extras' && (
+          <ProjectExtras project={project} key={`extras-${project.uuid}`} />
         )}
       </section>
 
