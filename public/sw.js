@@ -10,7 +10,8 @@
 // 갈아끼우면 안전.
 
 // v3 — Drive 경로/스코프 교정, 온투업 상세 표시, 탭바 가림 수정, 프로젝트 주요사항 탭 추가.
-const CACHE_NAME = 'ipad-pm-shell-v3'
+// v4 — 좌우 여백 축소(아이패드 가로 화면 폭 활용).
+const CACHE_NAME = 'ipad-pm-shell-v4'
 const SHELL_FILES = [
   './',
   './index.html',

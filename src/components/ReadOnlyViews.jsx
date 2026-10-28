@@ -161,7 +161,7 @@ export function OntuView() {
   const counts = { changes: changeList.length, companies: companyList.length, contacts: contactList.length }
 
   return (
-    <div style={{ padding: '4px 14px 40px' }}>
+    <div style={{ padding: '4px 10px 40px' }}>
       <Bar title="온투업 업무" count={counts[sec]} busy={busy} onRefresh={reload} />
       {err && <Err>{err}</Err>}
 
@@ -202,7 +202,7 @@ export function JournalView() {
     entries = entries.filter((e) => `${e.content || ''} ${e.date || ''} ${parseTags(e.tags).join(' ')}`.toLowerCase().includes(k))
   }
   return (
-    <div style={{ padding: '4px 14px 40px' }}>
+    <div style={{ padding: '4px 10px 40px' }}>
       <Bar title="업무일지" count={entries.length} busy={busy} onRefresh={reload} />
       {err && <Err>{err}</Err>}
       <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="업무일지 검색…"
@@ -237,7 +237,7 @@ export function OcrView() {
   const { data, busy, err, reload } = useDb('ocr', ocrQuery)
   const [open, setOpen] = useState(null)
   return (
-    <div style={{ padding: '4px 14px 40px' }}>
+    <div style={{ padding: '4px 10px 40px' }}>
       <Bar title="이미지추출" count={data ? data.length : null} busy={busy} onRefresh={reload} />
       {err && <Err>{err}</Err>}
       {data === null && <Empty>불러오는 중…</Empty>}
@@ -282,7 +282,7 @@ export function LibraryView() {
     list = list.filter((r) => `${r.title || ''} ${r.file_name || ''} ${r.ocr_text || ''} ${parseTags(r.tags).join(' ')}`.toLowerCase().includes(k))
   }
   return (
-    <div style={{ padding: '4px 14px 40px' }}>
+    <div style={{ padding: '4px 10px 40px' }}>
       <Bar title="통합자료실" count={data ? list.length : null} busy={busy} onRefresh={reload} />
       {err && <Err>{err}</Err>}
       <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="자료 검색(제목·태그·OCR)…"

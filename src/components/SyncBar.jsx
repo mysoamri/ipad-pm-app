@@ -146,7 +146,7 @@ const s = {
   bar: {
     background: '#fff',
     borderBottom: '1px solid #E2E8F0',
-    padding: '8px 16px',
+    padding: '8px 12px',
     display: 'flex',
     flexWrap: 'wrap',
     alignItems: 'center',
